@@ -4,6 +4,9 @@ version = "0.0.1"
 authors = ["Pierre-Henri Symoneaux"]
 repository = "https://github.com/phsym/shrust"
 homepage = "https://github.com/phsym/shrust"
+readme = "README.md"
+license = "MIT"
+keywords = ["shell", "console", "interactive", "terminal", "command"]
 
 [dependencies]
 prettytable-rs = "*"

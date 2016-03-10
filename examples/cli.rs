@@ -19,10 +19,18 @@ fn main() {
         };
         Ok(())
     });
+    reg.new_command("remove", "Remove a value", 1, |map, args| {
+        map.remove(&try!(usize::from_str(args[0])));
+        Ok(())
+    });
     reg.new_command("list", "List all values", 0, |map, _| {
         for (k, v) in map {
             println!("{} = {}", k, v);
         }
+        Ok(())
+    });
+    reg.new_command("clear", "Clear all values", 1, |map, _| {
+        map.clear();
         Ok(())
     });
 
