@@ -39,21 +39,23 @@ pub type CmdFn<T> = Fn(&mut T, &[&str]);
 
 pub struct Command<T> {
     name: String,
+    description: String,
     nargs: usize,
     func: Box<CmdFn<T>>
 }
 
 impl <T> Command<T> {
-    pub fn new(name: String, nargs: usize, func: Box<CmdFn<T>>) -> Command<T> {
+    pub fn new(name: String, description: String, nargs: usize, func: Box<CmdFn<T>>) -> Command<T> {
         return Command {
             name: name,
+            description: description,
             nargs: nargs,
             func: func
         };
     }
 
     pub fn help(&self) {
-        println!("{}", self.name);
+        println!("{} :\t{}", self.name, self.description);
     }
 
     pub fn run(&self, value: &mut T, args: &[&str]) -> ExecResult {
@@ -89,8 +91,8 @@ impl <T> CommandRegistry<T> {
         self.commands.insert(cmd.name.clone(), cmd);
     }
 
-    pub fn new_command<S: ToString, F: Fn(&mut T, &[&str]) + 'static>(&mut self, name: S, nargs: usize, func: F) {
-        self.register_command(Command::new(name.to_string(), nargs, Box::new(func)));
+    pub fn new_command<S: ToString, F: Fn(&mut T, &[&str]) + 'static>(&mut self, name: S, description: S, nargs: usize, func: F) {
+        self.register_command(Command::new(name.to_string(), description.to_string(), nargs, Box::new(func)));
     }
 
     pub fn help(&self) -> ExecResult {
@@ -122,8 +124,8 @@ impl <T> CommandRegistry<T> {
     pub fn run_loop(&mut self) {
         let stdin = io::stdin();
         self.print_prompt();
-        for line in stdin.lock().lines() {
-            if let Err(e) =  self.run(&line.unwrap()) {
+        for line in stdin.lock().lines().map(|l| l.unwrap()) {
+            if let Err(e) =  self.run(&line) {
                 match e {
                     Quit => return,
                     e @ _ => println!("{}", e)
