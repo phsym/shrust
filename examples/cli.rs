@@ -1,11 +1,11 @@
 extern crate shrust;
-use shrust::CommandRegistry;
+use shrust::Shell;
 
 use std::collections::HashMap;
 
 fn main() {
     let map = HashMap::new();
-    let mut reg = CommandRegistry::new(map);
+    let mut reg = Shell::new(map);
 
     reg.new_command("put", "Insert a value", 2, |map, args| {
         map.insert(args[0].to_string(), args[1].to_string());

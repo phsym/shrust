@@ -3,3 +3,5 @@
 
 # shrust
 Rust library to create interactive command line shells
+
+> This is currently a work in progress, an API should be consider instable. I'll start documenting and releasing to **crates.io** once a first level of stability has been reached

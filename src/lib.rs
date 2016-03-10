@@ -29,7 +29,12 @@ impl fmt::Display for ExecError {
 
 impl Error for ExecError {
     fn description(&self) -> &str {
-        return "Error during command execution"
+        return match self {
+            &Quit => "The command requested to quit",
+            &UnknownCommand(..) => "The provided command is unknown",
+            &MissingArgs => "Not enough arguments have been provided",
+            &Other(..) => "Other error occured"
+        };
     }
 }
 
@@ -60,7 +65,6 @@ impl <T> Command<T> {
 
     pub fn run(&self, value: &mut T, args: &[&str]) -> ExecResult {
         if args.len() < self.nargs {
-            // println!("Not enough arguments");
             return Err(MissingArgs);
         }
         (self.func)(value, args);
@@ -68,15 +72,15 @@ impl <T> Command<T> {
     }
 }
 
-pub struct CommandRegistry<T> {
+pub struct Shell<T> {
     commands: BTreeMap<String, Command<T>>,
     value: T,
     prompt: String
 }
 
-impl <T> CommandRegistry<T> {
-    pub fn new(value: T) -> CommandRegistry<T> {
-        return CommandRegistry {
+impl <T> Shell<T> {
+    pub fn new(value: T) -> Shell<T> {
+        return Shell {
             commands: BTreeMap::new(),
             value: value,
             prompt: String::from(">")
