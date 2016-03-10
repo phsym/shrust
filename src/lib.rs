@@ -9,10 +9,10 @@ use std::collections::BTreeMap;
 
 #[derive(Debug)]
 pub enum ExecError {
-    Other(String),
+    Quit,
     MissingArgs,
     UnknownCommand(String),
-    Quit
+    Other(Box<Error>),
 }
 use ExecError::*;
 
@@ -27,30 +27,36 @@ impl fmt::Display for ExecError {
     }
 }
 
-impl Error for ExecError {
-    fn description(&self) -> &str {
-        return match self {
-            &Quit => "The command requested to quit",
-            &UnknownCommand(..) => "The provided command is unknown",
-            &MissingArgs => "Not enough arguments have been provided",
-            &Other(..) => "Other error occured"
-        };
+// impl Error for ExecError {
+//     fn description(&self) -> &str {
+//         return match self {
+//             &Quit => "The command requested to quit",
+//             &UnknownCommand(..) => "The provided command is unknown",
+//             &MissingArgs => "Not enough arguments have been provided",
+//             &Other(..) => "Other error occured"
+//         };
+//     }
+// }
+
+impl <E: Error + 'static> From<E> for ExecError {
+    fn from(e: E) -> ExecError {
+        return Other(Box::new(e));
     }
 }
 
 pub type ExecResult = Result<(), ExecError>;
 
-pub type CmdFn<T> = Fn(&mut T, &[&str]);
+pub type CmdFn<T> = Box<Fn(&mut T, &[&str]) -> ExecResult>;
 
 pub struct Command<T> {
     name: String,
     description: String,
     nargs: usize,
-    func: Box<CmdFn<T>>
+    func: CmdFn<T>
 }
 
 impl <T> Command<T> {
-    pub fn new(name: String, description: String, nargs: usize, func: Box<CmdFn<T>>) -> Command<T> {
+    pub fn new(name: String, description: String, nargs: usize, func: CmdFn<T>) -> Command<T> {
         return Command {
             name: name,
             description: description,
@@ -67,8 +73,7 @@ impl <T> Command<T> {
         if args.len() < self.nargs {
             return Err(MissingArgs);
         }
-        (self.func)(value, args);
-        return Ok(());
+        return (self.func)(value, args);
     }
 }
 
@@ -95,7 +100,9 @@ impl <T> Shell<T> {
         self.commands.insert(cmd.name.clone(), cmd);
     }
 
-    pub fn new_command<S: ToString, F: Fn(&mut T, &[&str]) + 'static>(&mut self, name: S, description: S, nargs: usize, func: F) {
+    pub fn new_command<S, F>(&mut self, name: S, description: S, nargs: usize, func: F)
+        where S: ToString, F: Fn(&mut T, &[&str]) -> ExecResult + 'static
+    {
         self.register_command(Command::new(name.to_string(), description.to_string(), nargs, Box::new(func)));
     }
 
@@ -132,7 +139,7 @@ impl <T> Shell<T> {
             if let Err(e) =  self.run(&line) {
                 match e {
                     Quit => return,
-                    e @ _ => println!("{}", e)
+                    e @ _ => println!("Error : {}", e)
                 };
             }
             self.print_prompt();
