@@ -1,3 +1,8 @@
+#[macro_use] extern crate prettytable;
+use prettytable::Table;
+use prettytable::row::Row;
+use prettytable::format;
+
 use std::io;
 use std::io::prelude::*;
 use std::string::ToString;
@@ -65,8 +70,8 @@ impl <T> Command<T> {
         };
     }
 
-    pub fn help(&self) {
-        println!("{} :\t{}", self.name, self.description);
+    pub fn help(&self) -> Row {
+        return row![self.name, ":", self.description];
     }
 
     pub fn run(&self, value: &mut T, args: &[&str]) -> ExecResult {
@@ -107,9 +112,12 @@ impl <T> Shell<T> {
     }
 
     pub fn help(&self) -> ExecResult {
+        let mut table = Table::new();
+        table.set_format(*format::consts::FORMAT_CLEAN);
         for cmd in self.commands.values() {
-            cmd.help();
+            table.add_row(cmd.help());
         }
+        table.printstd();
         return Ok(());
     }
 

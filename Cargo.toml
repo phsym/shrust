@@ -4,3 +4,6 @@ version = "0.0.1"
 authors = ["Pierre-Henri Symoneaux"]
 repository = "https://github.com/phsym/shrust"
 homepage = "https://github.com/phsym/shrust"
+
+[dependencies]
+prettytable-rs = "*"
