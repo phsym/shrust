@@ -29,7 +29,7 @@ impl fmt::Display for ExecError {
             &Quit => write!(format, "Quit"),
             &UnknownCommand(ref cmd) => write!(format, "Unknown Command {}", cmd),
             &MissingArgs => write!(format, "Not enough arguments"),
-            &Other(ref string) => write!(format, "{}", string)
+            &Other(ref e) => write!(format, "{}", e)
         };
     }
 }
@@ -135,7 +135,7 @@ impl <T> Shell<T> {
     pub fn new_command_noargs<S, F>(&mut self, name: S, description: S, func: F)
         where S: ToString, F: Fn(&mut Shell<T>) -> ExecResult + 'static
     {
-        self.register_command(Command::new(name.to_string(), description.to_string(), 0, Box::new(move |val, _| func(val))));
+        self.new_command(name, description, 0, move |val, _| func(val));
     }
 
     pub fn help(&self) -> ExecResult {
@@ -204,7 +204,7 @@ mod builtins {
     use super::ExecError;
 
     pub fn help_cmd<T>() -> Command<T> {
-    return Command::new("help".to_string(), "Print this help".to_string(), 0, Box::new(|shell, _| shell.help()));
+        return Command::new("help".to_string(), "Print this help".to_string(), 0, Box::new(|shell, _| shell.help()));
     }
 
     pub fn quit_cmd<T>() -> Command<T> {
