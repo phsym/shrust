@@ -8,29 +8,29 @@ fn main() {
     let map = HashMap::new();
     let mut reg = Shell::new(map);
 
-    reg.new_command("put", "Insert a value", 2, |map, args| {
-        map.insert(try!(usize::from_str(args[0])), args[1].to_string());
+    reg.new_command("put", "Insert a value", 2, |shell, args| {
+        shell.data().insert(try!(usize::from_str(args[0])), args[1].to_string());
         Ok(())
     });
-    reg.new_command("get", "Get a value", 1, |map, args| {
-        match map.get(&try!(usize::from_str(args[0]))) {
+    reg.new_command("get", "Get a value", 1, |shell, args| {
+        match shell.data().get(&try!(usize::from_str(args[0]))) {
             Some(val) => println!("{}", val),
             None => println!("Not found")
         };
         Ok(())
     });
-    reg.new_command("remove", "Remove a value", 1, |map, args| {
-        map.remove(&try!(usize::from_str(args[0])));
+    reg.new_command("remove", "Remove a value", 1, |shell, args| {
+        shell.data().remove(&try!(usize::from_str(args[0])));
         Ok(())
     });
-    reg.new_command("list", "List all values", 0, |map, _| {
-        for (k, v) in map {
+    reg.new_command("list", "List all values", 0, |shell, _| {
+        for (k, v) in shell.data() {
             println!("{} = {}", k, v);
         }
         Ok(())
     });
-    reg.new_command("clear", "Clear all values", 1, |map, _| {
-        map.clear();
+    reg.new_command_noargs("clear", "Clear all values", |shell| {
+        shell.data().clear();
         Ok(())
     });
 
