@@ -9,6 +9,7 @@ use std::string::ToString;
 use std::rc::Rc;
 use std::error::Error;
 use std::fmt;
+use std::ops::{Deref, DerefMut};
 
 use std::collections::BTreeMap;
 
@@ -90,8 +91,7 @@ pub struct Shell<T> {
     commands: BTreeMap<String, Rc<Command<T>>>,
     data: T,
     prompt: String,
-    history: Vec<String>,
-    history_size: usize
+    history: History
 }
 
 impl <T> Shell<T> {
@@ -100,8 +100,7 @@ impl <T> Shell<T> {
             commands: BTreeMap::new(),
             data: data,
             prompt: String::from(">"),
-            history: Vec::new(),
-            history_size: 10
+            history: History::new(10),
         };
         sh.register_command(builtins::help_cmd());
         sh.register_command(builtins::quit_cmd());
@@ -115,13 +114,6 @@ impl <T> Shell<T> {
 
     pub fn set_prompt(&mut self, prompt: String) {
         self.prompt = prompt;
-    }
-
-    pub fn set_history_size(&mut self, size: usize) {
-        self.history_size = size;
-        while self.history.len() > size {
-            self.history.remove(0);
-        }
     }
 
     pub fn register_command(&mut self, cmd: Command<T>) {
@@ -150,27 +142,8 @@ impl <T> Shell<T> {
         return Ok(());
     }
 
-    pub fn print_history(&self) -> ExecResult {
-        let mut cnt = 0;
-        for s in &self.history {
-            println!("{}: {}", cnt, s);
-            cnt += 1;
-        }
-        return Ok(());
-    }
-
-    pub fn run_history(&mut self, i: usize) -> ExecResult {
-        return match self.history.get(i).map(|s| s.clone()) {
-            Some(ref cmd) => self.run(cmd),
-            None => Err(InvalidHistory(i))
-        };
-    }
-
-    fn push_history(&mut self, line: String) {
-        self.history.push(line);
-        if self.history.len() > 10 {
-            self.history.remove(0);
-        }
+    pub fn get_history(&mut self) -> &mut History {
+        return &mut self.history;
     }
 
     pub fn run(&mut self, line: &str) -> ExecResult {
@@ -201,10 +174,56 @@ impl <T> Shell<T> {
                     e @ _ => println!("Error : {}", e)
                 };
             } else {
-                self.push_history(line);
+                self.get_history().push(line);
             }
             self.print_prompt();
         }
+    }
+}
+
+impl <T> Deref for Shell<T> {
+    type Target = T;
+    fn deref(&self) -> &T {
+        return &self.data;
+    }
+}
+
+impl <T> DerefMut for Shell<T> {
+    fn deref_mut(&mut self) -> &mut T {
+        return &mut self.data;
+    }
+}
+
+pub struct History {
+    history: Vec<String>,
+    capacity: usize
+}
+
+impl History {
+    pub fn new(capacity: usize) -> History {
+        return History {
+            history: Vec::with_capacity(capacity),
+            capacity: capacity
+        };
+    }
+
+    pub fn push(&mut self, cmd: String) {
+        if self.history.len() >= self.capacity {
+            self.history.remove(0);
+        }
+        self.history.push(cmd);
+    }
+
+    pub fn print(&self) {
+        let mut cnt = 0;
+        for s in &self.history {
+            println!("{}: {}", cnt, s);
+            cnt += 1;
+        }
+    }
+
+    pub fn get(&self, i: usize) -> Option<String> {
+        return self.history.get(i).map(|s| s.clone());
     }
 }
 
@@ -225,9 +244,11 @@ mod builtins {
         return Command::new("history".to_string(), "Print commands history or run a command from it".to_string(), 0, Box::new(|shell, args| {
             if args.len() > 0 {
                 let i = try!(usize::from_str(args[0]));
-                return shell.run_history(i);
+                let cmd = try!(shell.get_history().get(i).ok_or(ExecError::InvalidHistory(i)));
+                return shell.run(&cmd);
             } else {
-                return shell.print_history();
+                shell.get_history().print();
+                return Ok(());
             }
         }));
     }
