@@ -18,6 +18,7 @@ pub enum ExecError {
     Quit,
     MissingArgs,
     UnknownCommand(String),
+    InvalidHistory(usize),
     Other(Box<Error>),
 }
 use ExecError::*;
@@ -28,6 +29,7 @@ impl fmt::Display for ExecError {
             &Empty => write!(format, "No command provided"),
             &Quit => write!(format, "Quit"),
             &UnknownCommand(ref cmd) => write!(format, "Unknown Command {}", cmd),
+            &InvalidHistory(i) => write!(format, "Invalid history entry {}", i),
             &MissingArgs => write!(format, "Not enough arguments"),
             &Other(ref e) => write!(format, "{}", e)
         };
@@ -157,6 +159,13 @@ impl <T> Shell<T> {
         return Ok(());
     }
 
+    pub fn run_history(&mut self, i: usize) -> ExecResult {
+        return match self.history.get(i).map(|s| s.clone()) {
+            Some(ref cmd) => self.run(cmd),
+            None => Err(InvalidHistory(i))
+        };
+    }
+
     fn push_history(&mut self, line: String) {
         self.history.push(line);
         if self.history.len() > 10 {
@@ -200,6 +209,7 @@ impl <T> Shell<T> {
 }
 
 mod builtins {
+    use std::str::FromStr;
     use super::Command;
     use super::ExecError;
 
@@ -212,6 +222,13 @@ mod builtins {
     }
 
     pub fn history_cmd<T>() -> Command<T> {
-        return Command::new("history".to_string(), "Print commands history".to_string(), 0, Box::new(|shell, _| shell.print_history()));
+        return Command::new("history".to_string(), "Print commands history or run a command from it".to_string(), 0, Box::new(|shell, args| {
+            if args.len() > 0 {
+                let i = try!(usize::from_str(args[0]));
+                return shell.run_history(i);
+            } else {
+                return shell.print_history();
+            }
+        }));
     }
 }
