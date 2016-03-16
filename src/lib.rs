@@ -120,19 +120,25 @@ impl <T> Shell<T> {
         self.commands.insert(cmd.name.clone(), Rc::new(cmd));
     }
 
-    pub fn new_command<S, F>(&mut self, name: S, description: S, nargs: usize, func: F)
+    pub fn new_shell_command<S, F>(&mut self, name: S, description: S, nargs: usize, func: F)
         where S: ToString, F: Fn(&mut Shell<T>, &[&str]) -> ExecResult + 'static
     {
         self.register_command(Command::new(name.to_string(), description.to_string(), nargs, Box::new(func)));
     }
 
-    pub fn new_command_noargs<S, F>(&mut self, name: S, description: S, func: F)
-        where S: ToString, F: Fn(&mut Shell<T>) -> ExecResult + 'static
+    pub fn new_command<S, F>(&mut self, name: S, description: S, nargs: usize, func: F)
+        where S: ToString, F: Fn(&mut T, &[&str]) -> ExecResult + 'static
     {
-        self.new_command(name, description, 0, move |val, _| func(val));
+        self.new_shell_command(name, description, nargs, move |sh, args| func(sh.data(), args));
     }
 
-    pub fn help(&self) -> ExecResult {
+    pub fn new_command_noargs<S, F>(&mut self, name: S, description: S, func: F)
+        where S: ToString, F: Fn(&mut T) -> ExecResult + 'static
+    {
+        self.new_shell_command(name, description, 0, move |sh, _| func(sh.data()));
+    }
+
+    pub fn print_help(&self) -> ExecResult {
         let mut table = Table::new();
         table.set_format(*format::consts::FORMAT_CLEAN);
         for cmd in self.commands.values() {
@@ -200,14 +206,14 @@ pub struct History {
 }
 
 impl History {
-    pub fn new(capacity: usize) -> History {
+    fn new(capacity: usize) -> History {
         return History {
             history: Vec::with_capacity(capacity),
             capacity: capacity
         };
     }
 
-    pub fn push(&mut self, cmd: String) {
+    fn push(&mut self, cmd: String) {
         if self.history.len() >= self.capacity {
             self.history.remove(0);
         }
@@ -233,7 +239,7 @@ mod builtins {
     use super::ExecError;
 
     pub fn help_cmd<T>() -> Command<T> {
-        return Command::new("help".to_string(), "Print this help".to_string(), 0, Box::new(|shell, _| shell.help()));
+        return Command::new("help".to_string(), "Print this help".to_string(), 0, Box::new(|shell, _| shell.print_help()));
     }
 
     pub fn quit_cmd<T>() -> Command<T> {
