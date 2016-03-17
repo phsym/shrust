@@ -1,6 +1,5 @@
 #[macro_use] extern crate prettytable;
 use prettytable::Table;
-use prettytable::row::Row;
 use prettytable::format;
 
 use std::io;
@@ -56,39 +55,8 @@ impl <E: Error + 'static> From<E> for ExecError {
 
 pub type ExecResult = Result<(), ExecError>;
 
-pub type CmdFn<T> = Box<Fn(&mut Shell<T>, &[&str]) -> ExecResult>;
-
-pub struct Command<T> {
-    name: String,
-    description: String,
-    nargs: usize,
-    func: CmdFn<T>
-}
-
-impl <T> Command<T> {
-    pub fn new(name: String, description: String, nargs: usize, func: CmdFn<T>) -> Command<T> {
-        return Command {
-            name: name,
-            description: description,
-            nargs: nargs,
-            func: func
-        };
-    }
-
-    pub fn help(&self) -> Row {
-        return row![self.name, ":", self.description];
-    }
-
-    pub fn run(&self, shell: &mut Shell<T>, args: &[&str]) -> ExecResult {
-        if args.len() < self.nargs {
-            return Err(MissingArgs);
-        }
-        return (self.func)(shell, args);
-    }
-}
-
 pub struct Shell<T> {
-    commands: BTreeMap<String, Rc<Command<T>>>,
+    commands: BTreeMap<String, Rc<builtins::Command<T>>>,
     data: T,
     prompt: String,
     history: History
@@ -116,14 +84,14 @@ impl <T> Shell<T> {
         self.prompt = prompt;
     }
 
-    pub fn register_command(&mut self, cmd: Command<T>) {
+    fn register_command(&mut self, cmd: builtins::Command<T>) {
         self.commands.insert(cmd.name.clone(), Rc::new(cmd));
     }
 
     pub fn new_shell_command<S, F>(&mut self, name: S, description: S, nargs: usize, func: F)
         where S: ToString, F: Fn(&mut Shell<T>, &[&str]) -> ExecResult + 'static
     {
-        self.register_command(Command::new(name.to_string(), description.to_string(), nargs, Box::new(func)));
+        self.register_command(builtins::Command::new(name.to_string(), description.to_string(), nargs, Box::new(func)));
     }
 
     pub fn new_command<S, F>(&mut self, name: S, description: S, nargs: usize, func: F)
@@ -235,8 +203,39 @@ impl History {
 
 mod builtins {
     use std::str::FromStr;
-    use super::Command;
-    use super::ExecError;
+    use prettytable::row::Row;
+    use super::{Shell, ExecError, ExecResult};
+
+    pub type CmdFn<T> = Box<Fn(&mut Shell<T>, &[&str]) -> ExecResult>;
+
+    pub struct Command<T> {
+        pub name: String,
+        description: String,
+        nargs: usize,
+        func: CmdFn<T>
+    }
+
+    impl <T> Command<T> {
+        pub fn new(name: String, description: String, nargs: usize, func: CmdFn<T>) -> Command<T> {
+            return Command {
+                name: name,
+                description: description,
+                nargs: nargs,
+                func: func
+            };
+        }
+
+        pub fn help(&self) -> Row {
+            return row![self.name, ":", self.description];
+        }
+
+        pub fn run(&self, shell: &mut Shell<T>, args: &[&str]) -> ExecResult {
+            if args.len() < self.nargs {
+                return Err(ExecError::MissingArgs);
+            }
+            return (self.func)(shell, args);
+        }
+    }
 
     pub fn help_cmd<T>() -> Command<T> {
         return Command::new("help".to_string(), "Print this help".to_string(), 0, Box::new(|shell, _| shell.print_help()));
