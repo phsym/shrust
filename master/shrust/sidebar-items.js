@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["ExecError",""]],"struct":[["History",""],["Shell",""]],"type":[["ExecResult",""]]});
