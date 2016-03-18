@@ -15,13 +15,20 @@ use std::ops::{Deref, DerefMut};
 
 use std::collections::BTreeMap;
 
+/// Command execution error
 #[derive(Debug)]
 pub enum ExecError {
+    /// Empty command provided
     Empty,
+    /// Exit from the shell loop
     Quit,
+    /// Some arguments are missing
     MissingArgs,
+    /// The provided command is unknown
     UnknownCommand(String),
+    /// The history index is not valid
     InvalidHistory(usize),
+    /// Other error that may have happen during command execution
     Other(Box<Error>),
 }
 use ExecError::*;
@@ -56,8 +63,10 @@ impl <E: Error + 'static> From<E> for ExecError {
     }
 }
 
+/// Result from command execution
 pub type ExecResult = Result<(), ExecError>;
 
+/// A shell
 pub struct Shell<T> {
     commands: BTreeMap<String, Rc<builtins::Command<T>>>,
     data: T,
@@ -66,6 +75,7 @@ pub struct Shell<T> {
 }
 
 impl <T> Shell<T> {
+    /// Create a new shell, wrapping `data`
     pub fn new(data: T) -> Shell<T> {
         let mut sh = Shell {
             commands: BTreeMap::new(),
@@ -79,10 +89,12 @@ impl <T> Shell<T> {
         return sh;
     }
 
+    /// Get a mutable pointer to the inner data
     pub fn data(&mut self) -> &mut T {
         return &mut self.data;
     }
 
+    /// Change the current prompt
     pub fn set_prompt(&mut self, prompt: String) {
         self.prompt = prompt;
     }
@@ -91,24 +103,29 @@ impl <T> Shell<T> {
         self.commands.insert(cmd.name.clone(), Rc::new(cmd));
     }
 
+    /// Register a shell command.
+    /// Shell commands get called with a reference to the current shell
     pub fn new_shell_command<S, F>(&mut self, name: S, description: S, nargs: usize, func: F)
         where S: ToString, F: Fn(&mut Shell<T>, &[&str]) -> ExecResult + 'static
     {
         self.register_command(builtins::Command::new(name.to_string(), description.to_string(), nargs, Box::new(func)));
     }
 
+    /// Register a command
     pub fn new_command<S, F>(&mut self, name: S, description: S, nargs: usize, func: F)
         where S: ToString, F: Fn(&mut T, &[&str]) -> ExecResult + 'static
     {
         self.new_shell_command(name, description, nargs, move |sh, args| func(sh.data(), args));
     }
 
+    /// Register a command that do not accept any argument
     pub fn new_command_noargs<S, F>(&mut self, name: S, description: S, func: F)
         where S: ToString, F: Fn(&mut T) -> ExecResult + 'static
     {
         self.new_shell_command(name, description, 0, move |sh, _| func(sh.data()));
     }
 
+    /// Print the help to stdout
     pub fn print_help(&self) -> ExecResult {
         let mut table = Table::new();
         table.set_format(*format::consts::FORMAT_CLEAN);
@@ -119,11 +136,13 @@ impl <T> Shell<T> {
         return Ok(());
     }
 
+    /// Return the command history
     pub fn get_history(&mut self) -> &mut History {
         return &mut self.history;
     }
 
-    pub fn run(&mut self, line: &str) -> ExecResult {
+    /// Evaluate a command line
+    pub fn eval(&mut self, line: &str) -> ExecResult {
         let mut splt = line.trim().split_whitespace();
         return match splt.next() {
             None => Err(Empty),
@@ -140,11 +159,13 @@ impl <T> Shell<T> {
         stdout.flush().unwrap();
     }
 
+    /// Enter the shell main loop, exiting only when
+    /// the "quit" command is called
     pub fn run_loop(&mut self) {
         let stdin = io::stdin();
         self.print_prompt();
         for line in stdin.lock().lines().map(|l| l.unwrap()) {
-            if let Err(e) =  self.run(&line) {
+            if let Err(e) =  self.eval(&line) {
                 match e {
                     Empty => {},
                     Quit => return,
@@ -171,12 +192,16 @@ impl <T> DerefMut for Shell<T> {
     }
 }
 
+/// Wrap the command histroy from a shell.
+/// It has a maximum capacity, and when max capacity is reached,
+/// less recent command is removed from history
 pub struct History {
     history: Vec<String>,
     capacity: usize
 }
 
 impl History {
+    /// Create a new history with the given capacity
     fn new(capacity: usize) -> History {
         return History {
             history: Vec::with_capacity(capacity),
@@ -184,6 +209,8 @@ impl History {
         };
     }
 
+    /// Push a command to the history, removing the oldest
+    /// one if maximum capacity has been reached
     fn push(&mut self, cmd: String) {
         if self.history.len() >= self.capacity {
             self.history.remove(0);
@@ -191,6 +218,7 @@ impl History {
         self.history.push(cmd);
     }
 
+    /// Print the history to stdout
     pub fn print(&self) {
         let mut cnt = 0;
         for s in &self.history {
@@ -199,6 +227,7 @@ impl History {
         }
     }
 
+    /// Get a command from history by its index
     pub fn get(&self, i: usize) -> Option<String> {
         return self.history.get(i).map(|s| s.clone());
     }
@@ -253,7 +282,7 @@ mod builtins {
             if args.len() > 0 {
                 let i = try!(usize::from_str(args[0]));
                 let cmd = try!(shell.get_history().get(i).ok_or(ExecError::InvalidHistory(i)));
-                return shell.run(&cmd);
+                return shell.eval(&cmd);
             } else {
                 shell.get_history().print();
                 return Ok(());
