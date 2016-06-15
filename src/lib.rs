@@ -8,10 +8,10 @@ use prettytable::format;
 use std::io;
 use std::io::prelude::*;
 use std::string::ToString;
-use std::rc::Rc;
 use std::error::Error;
 use std::fmt;
 use std::ops::{Deref, DerefMut};
+use std::sync::{Arc, Mutex};
 
 use std::collections::BTreeMap;
 
@@ -63,22 +63,67 @@ impl <E: Error + 'static> From<E> for ExecError {
     }
 }
 
+/// Inpu / Output for shell execution
+#[derive(Clone)]
+pub struct ShellIO {
+    input: Arc<Mutex<io::Read + Send>>,
+    output: Arc<Mutex<io::Write + Send>>
+}
+
+impl ShellIO {
+
+    /// Create a new Shell I/O wrapping provided Input and Output
+    pub fn new<I, O>(input: I, output: O) -> ShellIO
+        where I: io::Read+Send+'static, O: io::Write+Send+'static
+    {
+        return ShellIO {
+            input: Arc::new(Mutex::new(input)),
+            output: Arc::new(Mutex::new(output))
+        };
+    }
+}
+
+impl Read for ShellIO {
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        return self.input.lock().expect("Cannot get handle to console input").read(buf);
+    }
+}
+
+impl Write for ShellIO {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        return self.output.lock().expect("Cannot get handle to console output").write(buf);
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        return self.output.lock().expect("Cannot get handle to console output").flush();
+    }
+}
+
+impl Default for ShellIO {
+    fn default() -> Self {
+        return Self::new(io::stdin(), io::stdout());
+    }
+}
+
+
 /// Result from command execution
 pub type ExecResult = Result<(), ExecError>;
 
 /// A shell
 pub struct Shell<T> {
-    commands: BTreeMap<String, Rc<builtins::Command<T>>>,
+    commands: BTreeMap<String, Arc<builtins::Command<T>>>,
+    io: ShellIO,
     data: T,
     prompt: String,
     history: History
 }
 
 impl <T> Shell<T> {
-    /// Create a new shell, wrapping `data`
-    pub fn new(data: T) -> Shell<T> {
+    /// Create a new shell, wrapping `data`, using provided IO
+    pub fn new_io(data: T, io: ShellIO) -> Shell<T> {
         let mut sh = Shell {
             commands: BTreeMap::new(),
+            io: io,
             data: data,
             prompt: String::from(">"),
             history: History::new(10),
@@ -87,6 +132,11 @@ impl <T> Shell<T> {
         sh.register_command(builtins::quit_cmd());
         sh.register_command(builtins::history_cmd());
         return sh;
+    }
+
+    /// Create a new shell, wrapping `data`, using standard input/outpu
+    pub fn new(data: T) -> Shell<T> {
+        return Shell::new_io(data, Default::default());
     }
 
     /// Get a mutable pointer to the inner data
@@ -99,41 +149,45 @@ impl <T> Shell<T> {
         self.prompt = prompt;
     }
 
+    ///Configure Input / Output for shell
+    pub fn set_io(&mut self, io: ShellIO) {
+        self.io = io;
+    }
+
     fn register_command(&mut self, cmd: builtins::Command<T>) {
-        self.commands.insert(cmd.name.clone(), Rc::new(cmd));
+        self.commands.insert(cmd.name.clone(), Arc::new(cmd));
     }
 
     /// Register a shell command.
     /// Shell commands get called with a reference to the current shell
     pub fn new_shell_command<S, F>(&mut self, name: S, description: S, nargs: usize, func: F)
-        where S: ToString, F: Fn(&mut Shell<T>, &[&str]) -> ExecResult + 'static
+        where S: ToString, F: Fn(&mut Shell<T>, &[&str]) -> ExecResult + Send + Sync + 'static
     {
         self.register_command(builtins::Command::new(name.to_string(), description.to_string(), nargs, Box::new(func)));
     }
 
     /// Register a command
     pub fn new_command<S, F>(&mut self, name: S, description: S, nargs: usize, func: F)
-        where S: ToString, F: Fn(&mut T, &[&str]) -> ExecResult + 'static
+        where S: ToString, F: Fn(ShellIO, &mut T, &[&str]) -> ExecResult + Send + Sync + 'static
     {
-        self.new_shell_command(name, description, nargs, move |sh, args| func(sh.data(), args));
+        self.new_shell_command(name, description, nargs, move |sh, args| func(sh.io.clone(), sh.data(), args));
     }
 
     /// Register a command that do not accept any argument
     pub fn new_command_noargs<S, F>(&mut self, name: S, description: S, func: F)
-        where S: ToString, F: Fn(&mut T) -> ExecResult + 'static
+        where S: ToString, F: Fn(ShellIO, &mut T) -> ExecResult + Send + Sync + 'static
     {
-        self.new_shell_command(name, description, 0, move |sh, _| func(sh.data()));
+        self.new_shell_command(name, description, 0, move |sh, _| func(sh.io.clone(), sh.data()));
     }
 
     /// Print the help to stdout
-    pub fn print_help(&self) -> ExecResult {
+    pub fn print_help(&mut self) -> ExecResult {
         let mut table = Table::new();
         table.set_format(*format::consts::FORMAT_CLEAN);
         for cmd in self.commands.values() {
             table.add_row(cmd.help());
         }
-        table.printstd();
-        return Ok(());
+        return table.print(&mut self.io).map_err(|e| From::from(e))
     }
 
     /// Return the command history
@@ -153,23 +207,23 @@ impl <T> Shell<T> {
         };
     }
 
-    fn print_prompt(&self) {
-        let mut stdout = io::stdout();
-        write!(stdout, "{}", self.prompt).unwrap();
-        stdout.flush().unwrap();
+    fn print_prompt(&mut self) {
+        write!(self.io, "{}", self.prompt).unwrap();
+        self.io.flush().unwrap();
     }
 
     /// Enter the shell main loop, exiting only when
     /// the "quit" command is called
     pub fn run_loop(&mut self) {
-        let stdin = io::stdin();
         self.print_prompt();
-        for line in stdin.lock().lines().map(|l| l.unwrap()) {
-            if let Err(e) =  self.eval(&line) {
+        let stdin = io::BufReader::new(self.io.clone());
+
+        for line in stdin.lines().map(|l| l.unwrap()) {
+            if let Err(e) = self.eval(&line) {
                 match e {
                     Empty => {},
                     Quit => return,
-                    e @ _ => println!("Error : {}", e)
+                    e @ _ => writeln!(self.io, "Error : {}", e).unwrap()
                 };
             } else {
                 self.get_history().push(line);
@@ -192,11 +246,24 @@ impl <T> DerefMut for Shell<T> {
     }
 }
 
+impl <T> Clone for Shell<T> where T: Clone {
+    fn clone(&self) -> Self {
+        return Shell {
+            commands: self.commands.clone(),
+            io: self.io.clone(),
+            data: self.data.clone(),
+            prompt: self.prompt.clone(),
+            history: self.history.clone()
+        };
+    }
+}
+
 /// Wrap the command histroy from a shell.
 /// It has a maximum capacity, and when max capacity is reached,
 /// less recent command is removed from history
+#[derive(Clone)]
 pub struct History {
-    history: Vec<String>,
+    history: Arc<Mutex<Vec<String>>>,
     capacity: usize
 }
 
@@ -204,7 +271,7 @@ impl History {
     /// Create a new history with the given capacity
     fn new(capacity: usize) -> History {
         return History {
-            history: Vec::with_capacity(capacity),
+            history: Arc::new(Mutex::new(Vec::with_capacity(capacity))),
             capacity: capacity
         };
     }
@@ -212,24 +279,25 @@ impl History {
     /// Push a command to the history, removing the oldest
     /// one if maximum capacity has been reached
     fn push(&mut self, cmd: String) {
-        if self.history.len() >= self.capacity {
-            self.history.remove(0);
+        let mut hist = self.history.lock().unwrap();
+        if hist.len() >= self.capacity {
+            hist.remove(0);
         }
-        self.history.push(cmd);
+        hist.push(cmd);
     }
 
     /// Print the history to stdout
-    pub fn print(&self) {
+    pub fn print<T: Write>(&self, out: &mut T) {
         let mut cnt = 0;
-        for s in &self.history {
-            println!("{}: {}", cnt, s);
+        for s in &*self.history.lock().unwrap() {
+            writeln!(out, "{}: {}", cnt, s).expect("Cannot write to output");
             cnt += 1;
         }
     }
 
     /// Get a command from history by its index
     pub fn get(&self, i: usize) -> Option<String> {
-        return self.history.get(i).map(|s| s.clone());
+        return self.history.lock().unwrap().get(i).map(|s| s.clone());
     }
 }
 
@@ -238,7 +306,7 @@ mod builtins {
     use prettytable::row::Row;
     use super::{Shell, ExecError, ExecResult};
 
-    pub type CmdFn<T> = Box<Fn(&mut Shell<T>, &[&str]) -> ExecResult>;
+    pub type CmdFn<T> = Box<Fn(&mut Shell<T>, &[&str]) -> ExecResult + Send + Sync>;
 
     pub struct Command<T> {
         pub name: String,
@@ -284,7 +352,8 @@ mod builtins {
                 let cmd = try!(shell.get_history().get(i).ok_or(ExecError::InvalidHistory(i)));
                 return shell.eval(&cmd);
             } else {
-                shell.get_history().print();
+                let mut io = shell.io.clone();
+                shell.get_history().print(&mut io);
                 return Ok(());
             }
         }));
