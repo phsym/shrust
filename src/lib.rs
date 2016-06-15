@@ -63,7 +63,7 @@ impl <E: Error + 'static> From<E> for ExecError {
     }
 }
 
-/// Inpu / Output for shell execution
+/// Input / Output for shell execution
 #[derive(Clone)]
 pub struct ShellIO {
     input: Arc<Mutex<io::Read + Send>>,
@@ -71,7 +71,6 @@ pub struct ShellIO {
 }
 
 impl ShellIO {
-
     /// Create a new Shell I/O wrapping provided Input and Output
     pub fn new<I, O>(input: I, output: O) -> ShellIO
         where I: io::Read+Send+'static, O: io::Write+Send+'static
