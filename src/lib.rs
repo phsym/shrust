@@ -73,11 +73,22 @@ pub struct ShellIO {
 impl ShellIO {
     /// Create a new Shell I/O wrapping provided Input and Output
     pub fn new<I, O>(input: I, output: O) -> ShellIO
-        where I: io::Read+Send+'static, O: io::Write+Send+'static
+        where I: Read + Send + 'static, O: Write + Send + 'static
     {
         return ShellIO {
             input: Arc::new(Mutex::new(input)),
             output: Arc::new(Mutex::new(output))
+        };
+    }
+
+    /// Create a new Shell I/O wrapping provided Read/Write io
+    pub fn new_io<T>(io: T) -> ShellIO
+        where T: Read + Write + Send + 'static
+    {
+        let io = Arc::new(Mutex::new(io));
+        return ShellIO {
+            input: io.clone(),
+            output: io
         };
     }
 }
