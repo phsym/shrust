@@ -45,8 +45,7 @@ fn main() {
     for sock in serv.incoming() {
         let sock = sock.unwrap();
         let mut shell = shell.clone();
-        let io = ShellIO::new_io(sock);
-        shell.set_io(io);
-        thread::spawn(move || shell.run_loop());
+        let mut io = ShellIO::new_io(sock);
+        thread::spawn(move || shell.run_loop(&mut io));
     }
 }

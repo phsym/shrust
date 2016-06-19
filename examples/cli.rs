@@ -1,5 +1,5 @@
 extern crate shrust;
-use shrust::Shell;
+use shrust::{Shell, ShellIO};
 use std::io::prelude::*;
 
 use std::collections::HashMap;
@@ -35,5 +35,5 @@ fn main() {
         Ok(())
     });
 
-    shell.run_loop();
+    shell.run_loop(&mut ShellIO::default());
 }
