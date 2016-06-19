@@ -16,3 +16,92 @@ Rust library to create interactive command line shells
 
 
 This is currently a work in progress, and the API should be consider unstable. I'll start documenting and releasing to **crates.io** once a first level of stability has been reached
+
+# How to use
+
+## Including
+
+More often, you will include the library as a dependency to your project. In order to do this, add the following lines to your **Cargo.toml** file :
+
+```toml
+[dependencies]
+shrust = "0.0.1"
+```
+
+## Basic usage
+
+Let's have a look at example [dummy.rs](./examples/dummy.rs) :
+```rust
+extern crate shrust;
+use shrust::{Shell, ShellIO};
+use std::io::prelude::*;
+
+fn main() {
+    let mut shell = Shell::new(());
+    shell.new_command_noargs("hello", "Say 'hello' to the world", |io, _| {
+        try!(writeln!(io, "Hello World !!!"));
+        Ok(())
+    });
+
+    shell.run_loop(&mut ShellIO::default());
+}
+```
+
+The output of this program would be
+```
+λ cargo run --example dummy
+     Running `target\debug\examples\dummy.exe`
+>help
+ hello    :  Say 'hello' to the world
+ help     :  Print this help
+ history  :  Print commands history or run a command from it
+ quit     :  Quit
+>hello
+Hello World !!!
+>quit
+```
+
+## Attaching data
+
+You can attach data to the shell for usage by commands as seen in [data.rs](./examples/data.rs):
+```rust
+let v = Vec::new();
+let mut shell = Shell::new(v);
+shell.new_command("push", "Add string to the list", 1, |io, v, s| {
+    try!(writeln!(io, "Pushing {}", s[0]));
+    v.push(s[0].to_string());
+    Ok(())
+});
+shell.new_command_noargs("list", "List strings", |io, v| {
+    for s in v {
+        try!(writeln!(io, "{}", s));
+    }
+    Ok(())
+});
+
+shell.run_loop(&mut ShellIO::default());
+```
+Output:
+```
+λ cargo run --example dummy
+     Running `target\debug\examples\dummy.exe`
+>help
+ help     :  Print this help
+ history  :  Print commands history or run a command from it
+ list     :  List strings
+ push     :  Add string to the list
+ quit     :  Quit
+>push foo
+Pushing foo
+>push bar
+Pushing bar
+>list
+foo
+bar
+>quit
+```
+
+## Multithreading
+TBD...
+
+Additional examples are provided in documentation and in [examples](./examples/) directory
