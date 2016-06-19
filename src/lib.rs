@@ -179,7 +179,7 @@ impl <T> Shell<T> {
     }
 
     /// Print the help to stdout
-    pub fn print_help(&mut self, io: &mut ShellIO) -> ExecResult {
+    pub fn print_help(&self, io: &mut ShellIO) -> ExecResult {
         let mut table = Table::new();
         table.set_format(*format::consts::FORMAT_CLEAN);
         for cmd in self.commands.values() {
@@ -189,8 +189,8 @@ impl <T> Shell<T> {
     }
 
     /// Return the command history
-    pub fn get_history(&mut self) -> &mut History {
-        return &mut self.history;
+    pub fn get_history(&self) -> &History {
+        return &self.history;
     }
 
     /// Evaluate a command line
@@ -205,7 +205,7 @@ impl <T> Shell<T> {
         };
     }
 
-    fn print_prompt(&mut self, io: &mut ShellIO) {
+    fn print_prompt(&self, io: &mut ShellIO) {
         write!(io, "{}", self.prompt).unwrap();
         io.flush().unwrap();
     }
@@ -275,7 +275,7 @@ impl History {
 
     /// Push a command to the history, removing the oldest
     /// one if maximum capacity has been reached
-    fn push(&mut self, cmd: String) {
+    fn push(&self, cmd: String) {
         let mut hist = self.history.lock().unwrap();
         if hist.len() >= self.capacity {
             hist.remove(0);
