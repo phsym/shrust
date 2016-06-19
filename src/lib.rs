@@ -268,7 +268,7 @@ impl <T> Clone for Shell<T> where T: Clone {
     }
 }
 
-/// Wrap the command histroy from a shell.
+/// Wrap the command history from a shell.
 /// It has a maximum capacity, and when max capacity is reached,
 /// less recent command is removed from history
 #[derive(Clone)]
