@@ -47,18 +47,18 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a id='src-193' class='srclink' href='../src/shrust/src/lib.rs.html#262-265' title='goto source code'>[src]</a></span></h1>
+               </span><a id='src-198' class='srclink' href='../src/shrust/src/lib.rs.html#262-265' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct History {
     // some fields omitted
 }</pre><div class='docblock'><p>Wrap the command history from a shell.
 It has a maximum capacity, and when max capacity is reached,
 less recent command is removed from history</p>
 </div><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl <a class='struct' href='../shrust/struct.History.html' title='shrust::History'>History</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-201' class='srclink' href='../src/shrust/src/lib.rs.html#267-299' title='goto source code'>[src]</a></span></h3>
-<div class='impl-items'><h4 id='method.print' class='method'><code>fn <a href='#method.print' class='fnname'>print</a>&lt;T: <a class='trait' href='https://doc.rust-lang.org/nightly/std/io/trait.Write.html' title='std::io::Write'>Write</a>&gt;(&amp;self, out: &amp;mut T)</code></h4>
+<div class='impl-items'><h4 id='method.print' class='method'><code>fn <a href='#method.print' class='fnname'>print</a>&lt;T:&nbsp;<a class='trait' href='https://doc.rust-lang.org/nightly/std/io/trait.Write.html' title='std::io::Write'>Write</a>&gt;(&amp;self, out: &amp;mut T)</code></h4>
 <div class='docblock'><p>Print the history to stdout</p>
 </div><h4 id='method.get' class='method'><code>fn <a href='#method.get' class='fnname'>get</a>(&amp;self, i: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>&gt;</code></h4>
 <div class='docblock'><p>Get a command from history by its index</p>
-</div></div><h2 id='implementations'>Trait Implementations</h2><h3 id='derived_implementations'>Derived Implementations </h3><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html' title='core::clone::Clone'>Clone</a> for <a class='struct' href='../shrust/struct.History.html' title='shrust::History'>History</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-196' class='srclink' href='../src/shrust/src/lib.rs.html#261' title='goto source code'>[src]</a></span></h3>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html' title='core::clone::Clone'>Clone</a> for <a class='struct' href='../shrust/struct.History.html' title='shrust::History'>History</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-193' class='srclink' href='../src/shrust/src/lib.rs.html#261' title='goto source code'>[src]</a></span></h3>
 <div class='impl-items'><h4 id='method.clone' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone' class='fnname'>clone</a>(&amp;self) -&gt; <a class='struct' href='../shrust/struct.History.html' title='shrust::History'>History</a></code></h4>
 <div class='docblock'><p>Returns a copy of the value. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone">Read more</a></p>
 </div><h4 id='method.clone_from' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from' class='fnname'>clone_from</a>(&amp;mut self, source: &amp;Self)</code><div class='since' title='Stable since Rust version 1.0.0'>1.0.0</div></h4>
