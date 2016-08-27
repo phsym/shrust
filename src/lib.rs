@@ -158,6 +158,7 @@ impl <T> Shell<T> {
         self.commands.insert(cmd.name.clone(), Arc::new(cmd));
     }
 
+    // Set a custom default handler, invoked when a command is not found
     pub fn set_default<F>(&mut self, func: F)
         where F: Fn(&mut ShellIO, &mut Shell<T>, &str) -> ExecResult + Send + Sync + 'static
     {

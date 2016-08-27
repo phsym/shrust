@@ -121,7 +121,25 @@ This is applied in example [socket.rs](./examples/socket.rs).
 
 ## Default handler
 
-TBD ...
+By default, when a command is not found, the evaluation returns an `UnknownCommand` error. This behavior can be customized
+by providing a custom default handler to be invoked on not found command.
+```rust
+let mut shell = Shell::new(());
+shell.set_default(|io, _, cmd| {
+    try!(writeln!(io, "Hello from default handler !!! Received: {}", cmd));
+    Ok(())
+});
+shell.run_loop(&mut ShellIO::default());
+```
+Output:
+```
+λ cargo run --example default
+     Running `target\debug\examples\default.exe`
+>foo
+Hello from default handler !!! Received: foo
+>quit
+```
+This is applied in example [default.rs](./examples/default.rs).
 
 ## Multithreading
 A shell instance itself cannot be shared across threads, it needs to be cloned. A shell is clonable only if the wrapped data
