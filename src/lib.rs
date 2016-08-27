@@ -122,6 +122,7 @@ pub type ExecResult = Result<(), ExecError>;
 /// A shell
 pub struct Shell<T> {
     commands: BTreeMap<String, Arc<builtins::Command<T>>>,
+    default: Arc<Fn(&mut ShellIO, &mut Shell<T>, &str) -> ExecResult + Send + Sync>,
     data: T,
     prompt: String,
     history: History
@@ -132,6 +133,7 @@ impl <T> Shell<T> {
     pub fn new(data: T) -> Shell<T> {
         let mut sh = Shell {
             commands: BTreeMap::new(),
+            default: Arc::new(|_, _, cmd| Err(UnknownCommand(cmd.to_string()))),
             data: data,
             prompt: String::from(">"),
             history: History::new(10),
@@ -154,6 +156,12 @@ impl <T> Shell<T> {
 
     fn register_command(&mut self, cmd: builtins::Command<T>) {
         self.commands.insert(cmd.name.clone(), Arc::new(cmd));
+    }
+
+    pub fn set_default<F>(&mut self, func: F)
+        where F: Fn(&mut ShellIO, &mut Shell<T>, &str) -> ExecResult + Send + Sync + 'static
+    {
+        self.default = Arc::new(func);
     }
 
     /// Register a shell command.
@@ -199,7 +207,7 @@ impl <T> Shell<T> {
         return match splt.next() {
             None => Err(Empty),
             Some(cmd) => match self.commands.get(cmd).map(|i| i.clone()) {
-                None => Err(UnknownCommand(cmd.to_string())),
+                None => self.default.clone()(io, self, line),
                 Some(c) => c.run(io, self, &splt.collect::<Vec<&str>>())
             }
         };
@@ -248,6 +256,7 @@ impl <T> Clone for Shell<T> where T: Clone {
     fn clone(&self) -> Self {
         return Shell {
             commands: self.commands.clone(),
+            default: self.default.clone(),
             data: self.data.clone(),
             prompt: self.prompt.clone(),
             history: self.history.clone()

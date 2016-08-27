@@ -101,7 +101,32 @@ bar
 >quit
 ```
 
+## Using custom I/O
+In previous examples, the shell's loop was run the following way:
+```rust
+shell.run_loop(&mut ShellIO::default());
+```
+`ShellIO::default()` returns an stdin/stdout IO.
+
+It's possible to create a `ShellIO` instance around user-defined I/O. For example to connect a `Shell` on a socket,
+the `ShellIO` would be created with
+```rust
+let mut io = ShellIO::new_io(sock);
+```
+where `sock` is the socket, then the shell can be started with
+```rust
+shell.run_loop(&mut io);
+```
+This is applied in example [socket.rs](./examples/socket.rs).
+
+## Default handler
+
+TBD ...
+
 ## Multithreading
+A shell instance itself cannot be shared across threads, it needs to be cloned. A shell is clonable only if the wrapped data
+is clonable too. However, the wrapped data can be easily shared if (for example) it's an `Arc` around a `Sync+Send` value.
+
 TBD...
 
 Additional examples are provided in documentation and in [examples](./examples/) directory
