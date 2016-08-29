@@ -125,6 +125,7 @@ pub struct Shell<T> {
     default: Arc<Fn(&mut ShellIO, &mut Shell<T>, &str) -> ExecResult + Send + Sync>,
     data: T,
     prompt: String,
+    unclosed_prompt: String,
     history: History
 }
 
@@ -136,6 +137,7 @@ impl <T> Shell<T> {
             default: Arc::new(|_, _, cmd| Err(UnknownCommand(cmd.to_string()))),
             data: data,
             prompt: String::from(">"),
+            unclosed_prompt: String::from(">"),
             history: History::new(10),
         };
         sh.register_command(builtins::help_cmd());
@@ -152,6 +154,11 @@ impl <T> Shell<T> {
     /// Change the current prompt
     pub fn set_prompt(&mut self, prompt: String) {
         self.prompt = prompt;
+    }
+
+    /// Change the current unclosed prompt
+    pub fn set_unclosed_prompt(&mut self, prompt: String) {
+        self.unclosed_prompt = prompt;
     }
 
     fn register_command(&mut self, cmd: builtins::Command<T>) {
@@ -214,18 +221,27 @@ impl <T> Shell<T> {
         };
     }
 
-    fn print_prompt(&self, io: &mut ShellIO) {
-        write!(io, "{}", self.prompt).unwrap();
+    fn print_prompt(&self, io: &mut ShellIO, unclosed: bool) {
+        if unclosed {
+            write!(io, "{} ", self.unclosed_prompt).unwrap();
+        } else {
+            write!(io, "{} ", self.prompt).unwrap();
+        }
         io.flush().unwrap();
     }
 
     /// Enter the shell main loop, exiting only when
     /// the "quit" command is called
     pub fn run_loop(&mut self, io: &mut ShellIO) {
-        self.print_prompt(io);
+        self.print_prompt(io, false);
         let stdin = io::BufReader::new(io.clone());
-
-        for line in stdin.lines().map(|l| l.unwrap()) {
+        let mut iter = stdin.lines().map(|l| l.unwrap());
+        while let Some(mut line) = iter.next() {
+            while &line[line.len()-1 ..] == "\\" {
+                self.print_prompt(io, true);
+                line.pop();
+                line.push_str(&iter.next().unwrap())
+            }
             if let Err(e) = self.eval(io, &line) {
                 match e {
                     Empty => {},
@@ -235,7 +251,7 @@ impl <T> Shell<T> {
             } else {
                 self.get_history().push(line);
             }
-            self.print_prompt(io);
+            self.print_prompt(io, false);
         }
     }
 }
@@ -260,6 +276,7 @@ impl <T> Clone for Shell<T> where T: Clone {
             default: self.default.clone(),
             data: self.data.clone(),
             prompt: self.prompt.clone(),
+            unclosed_prompt: self.unclosed_prompt.clone(),
             history: self.history.clone()
         };
     }
