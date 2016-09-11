@@ -237,7 +237,7 @@ impl <T> Shell<T> {
         let stdin = io::BufReader::new(io.clone());
         let mut iter = stdin.lines().map(|l| l.unwrap());
         while let Some(mut line) = iter.next() {
-            while &line[line.len()-1 ..] == "\\" {
+            while line.len() > 0 && &line[line.len()-1 ..] == "\\" {
                 self.print_prompt(io, true);
                 line.pop();
                 line.push_str(&iter.next().unwrap())
