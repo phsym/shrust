@@ -1,5 +1,5 @@
 (function() {var implementors = {};
-implementors["lazy_static"] = [];implementors["libc"] = [];implementors["shrust"] = ["impl&lt;T&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.DerefMut.html' title='core::ops::DerefMut'>DerefMut</a> for <a class='struct' href='shrust/struct.Shell.html' title='shrust::Shell'>Shell</a>&lt;T&gt;",];
+implementors["lazy_static"] = [];implementors["libc"] = [];implementors["csv"] = ["impl&lt;R,&nbsp;I&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.DerefMut.html' title='core::ops::DerefMut'>DerefMut</a> for <a class='struct' href='csv/index/struct.Indexed.html' title='csv::index::Indexed'>Indexed</a>&lt;R,&nbsp;I&gt;",];implementors["shrust"] = ["impl&lt;T&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.DerefMut.html' title='core::ops::DerefMut'>DerefMut</a> for <a class='struct' href='shrust/struct.Shell.html' title='shrust::Shell'>Shell</a>&lt;T&gt;",];
 
             if (window.register_implementors) {
                 window.register_implementors(implementors);
