@@ -9,6 +9,7 @@
 
     <title>encode_unicode::error - Rust</title>
 
+    <link rel="stylesheet" type="text/css" href="../../normalize.css">
     <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../../main.css">
     
@@ -16,7 +17,7 @@
     
     
 </head>
-<body class="rustdoc">
+<body class="rustdoc mod">
     <!--[if lte IE 8]>
     <div class="warning">
         This old browser is unsupported and will most likely display funky
@@ -42,68 +43,77 @@
         </form>
     </nav>
 
-    <section id='main' class="content mod">
-<h1 class='fqn'><span class='in-band'>Module <a href='../index.html'>encode_unicode</a>::<wbr><a class='mod' href=''>error</a></span><span class='out-of-band'><span id='render-detail'>
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Module <a href='../index.html'>encode_unicode</a>::<wbr><a class="mod" href=''>error</a></span><span class='out-of-band'><span id='render-detail'>
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a id='src-907' class='srclink' href='../../src/encode_unicode/lib.rs.html#54-61' title='goto source code'>[src]</a></span></h1>
+               </span><a class='srclink' href='../../src/encode_unicode/lib.rs.html#63-71' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'><p>Errors returned by various conversion methods in this crate.</p>
-</div><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
+</div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table>
                        <tr class=' module-item'>
-                           <td><a class='enum' href='enum.FromStrError.html'
-                                  title='encode_unicode::error::FromStrError'>FromStrError</a></td>
+                           <td><a class="struct" href="struct.InvalidUtf16FirstUnit.html"
+                                  title='struct encode_unicode::error::InvalidUtf16FirstUnit'>InvalidUtf16FirstUnit</a></td>
+                           <td class='docblock-short'>
+                                <p>Cannot tell wether an <code>u16</code> needs an extra unit,
+because it&#39;s a trailing surrogate itself.</p>
+                           </td>
+                       </tr></table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="enum" href="enum.FromStrError.html"
+                                  title='enum encode_unicode::error::FromStrError'>FromStrError</a></td>
                            <td class='docblock-short'>
                                 <p>Reasons why <code>Utf8Char::from_str()</code> failed.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
-                           <td><a class='enum' href='enum.InvalidCodepoint.html'
-                                  title='encode_unicode::error::InvalidCodepoint'>InvalidCodepoint</a></td>
+                           <td><a class="enum" href="enum.InvalidCodepoint.html"
+                                  title='enum encode_unicode::error::InvalidCodepoint'>InvalidCodepoint</a></td>
                            <td class='docblock-short'>
                                 <p>Reasons why an <code>u32</code> is not a valid UTF codepoint.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
-                           <td><a class='enum' href='enum.InvalidUtf16Slice.html'
-                                  title='encode_unicode::error::InvalidUtf16Slice'>InvalidUtf16Slice</a></td>
+                           <td><a class="enum" href="enum.InvalidUtf16Slice.html"
+                                  title='enum encode_unicode::error::InvalidUtf16Slice'>InvalidUtf16Slice</a></td>
                            <td class='docblock-short'>
                                 <p>Reasons why a slice of <code>u16</code>s doesn&#39;t start with valid UTF-16.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
-                           <td><a class='enum' href='enum.InvalidUtf16Tuple.html'
-                                  title='encode_unicode::error::InvalidUtf16Tuple'>InvalidUtf16Tuple</a></td>
+                           <td><a class="enum" href="enum.InvalidUtf16Tuple.html"
+                                  title='enum encode_unicode::error::InvalidUtf16Tuple'>InvalidUtf16Tuple</a></td>
                            <td class='docblock-short'>
                                 <p>Reasons why one or two <code>u16</code>s are not valid UTF-16, in sinking precedence.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
-                           <td><a class='enum' href='enum.InvalidUtf8.html'
-                                  title='encode_unicode::error::InvalidUtf8'>InvalidUtf8</a></td>
+                           <td><a class="enum" href="enum.InvalidUtf8.html"
+                                  title='enum encode_unicode::error::InvalidUtf8'>InvalidUtf8</a></td>
                            <td class='docblock-short'>
                                 <p>Reasons why a byte sequence is not valid UTF-8, excluding invalid codepoint.
 In sinking precedence.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
-                           <td><a class='enum' href='enum.InvalidUtf8Array.html'
-                                  title='encode_unicode::error::InvalidUtf8Array'>InvalidUtf8Array</a></td>
+                           <td><a class="enum" href="enum.InvalidUtf8Array.html"
+                                  title='enum encode_unicode::error::InvalidUtf8Array'>InvalidUtf8Array</a></td>
                            <td class='docblock-short'>
                                 <p>Reasons why a byte array is not valid UTF-8, in sinking precedence.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
-                           <td><a class='enum' href='enum.InvalidUtf8FirstByte.html'
-                                  title='encode_unicode::error::InvalidUtf8FirstByte'>InvalidUtf8FirstByte</a></td>
+                           <td><a class="enum" href="enum.InvalidUtf8FirstByte.html"
+                                  title='enum encode_unicode::error::InvalidUtf8FirstByte'>InvalidUtf8FirstByte</a></td>
                            <td class='docblock-short'>
                                 <p>Reasons why a byte is not the start of a UTF-8 codepoint.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
-                           <td><a class='enum' href='enum.InvalidUtf8Slice.html'
-                                  title='encode_unicode::error::InvalidUtf8Slice'>InvalidUtf8Slice</a></td>
+                           <td><a class="enum" href="enum.InvalidUtf8Slice.html"
+                                  title='enum encode_unicode::error::InvalidUtf8Slice'>InvalidUtf8Slice</a></td>
                            <td class='docblock-short'>
                                 <p>Reasons why a byte slice is not valid UTF-8, in sinking precedence.</p>
                            </td>
@@ -163,11 +173,9 @@ In sinking precedence.</p>
     <script>
         window.rootPath = "../../";
         window.currentCrate = "encode_unicode";
-        window.playgroundUrl = "";
     </script>
     <script src="../../jquery.js"></script>
     <script src="../../main.js"></script>
-    
     <script defer src="../../search-index.js"></script>
 </body>
 </html>
