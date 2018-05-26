@@ -10,10 +10,11 @@
     <title>lib.rs.html -- source</title>
 
     <link rel="stylesheet" type="text/css" href="../../normalize.css">
-    <link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle">
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css"
+          id="mainThemeStyle">
     
     <link rel="stylesheet" type="text/css" href="../../dark.css">
-    <link rel="stylesheet" type="text/css" href="../../main.css" id="themeStyle">
+    <link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle">
     <script src="../../storage.js"></script>
     
 
@@ -571,7 +572,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">data</span>: <span class="ident">T</span>) <span class="op">-&gt;</span> <span class="ident">Shell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sh</span> <span class="op">=</span> <span class="ident">Shell</span> {
             <span class="ident">commands</span>: <span class="ident">BTreeMap</span>::<span class="ident">new</span>(),
-            <span class="ident">default</span>: <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="op">|</span>_, _, <span class="ident">cmd</span><span class="op">|</span> <span class="prelude-val">Err</span>(<span class="ident">UnknownCommand</span>(<span class="ident">cmd</span>.<span class="ident">to_string</span>()))),
+            <span class="ident">default</span>: <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="op">|</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">cmd</span><span class="op">|</span> <span class="prelude-val">Err</span>(<span class="ident">UnknownCommand</span>(<span class="ident">cmd</span>.<span class="ident">to_string</span>()))),
             <span class="ident">data</span>: <span class="ident">data</span>,
             <span class="ident">prompt</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;&gt;&quot;</span>),
             <span class="ident">unclosed_prompt</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;&gt;&quot;</span>),
@@ -628,7 +629,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_command_noargs</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="ident">S</span>, <span class="ident">description</span>: <span class="ident">S</span>, <span class="ident">func</span>: <span class="ident">F</span>)
         <span class="kw">where</span> <span class="ident">S</span>: <span class="ident">ToString</span>, <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ShellIO</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>) <span class="op">-&gt;</span> <span class="ident">ExecResult</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>
     {
-        <span class="self">self</span>.<span class="ident">new_shell_command</span>(<span class="ident">name</span>, <span class="ident">description</span>, <span class="number">0</span>, <span class="kw">move</span> <span class="op">|</span><span class="ident">io</span>, <span class="ident">sh</span>, _<span class="op">|</span> <span class="ident">func</span>(<span class="ident">io</span>, <span class="ident">sh</span>.<span class="ident">data</span>()));
+        <span class="self">self</span>.<span class="ident">new_shell_command</span>(<span class="ident">name</span>, <span class="ident">description</span>, <span class="number">0</span>, <span class="kw">move</span> <span class="op">|</span><span class="ident">io</span>, <span class="ident">sh</span>, <span class="kw">_</span><span class="op">|</span> <span class="ident">func</span>(<span class="ident">io</span>, <span class="ident">sh</span>.<span class="ident">data</span>()));
     }
 
     <span class="doccomment">/// Print the help to stdout</span>
@@ -683,7 +684,7 @@
                 <span class="kw">match</span> <span class="ident">e</span> {
                     <span class="ident">Empty</span> <span class="op">=&gt;</span> {},
                     <span class="ident">Quit</span> <span class="op">=&gt;</span> <span class="kw">return</span>,
-                    <span class="ident">e</span> @ _ <span class="op">=&gt;</span> <span class="macro">writeln</span><span class="macro">!</span>(<span class="ident">io</span>, <span class="string">&quot;Error : {}&quot;</span>, <span class="ident">e</span>).<span class="ident">unwrap</span>()
+                    <span class="ident">e</span> @ <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">writeln</span><span class="macro">!</span>(<span class="ident">io</span>, <span class="string">&quot;Error : {}&quot;</span>, <span class="ident">e</span>).<span class="ident">unwrap</span>()
                 };
             } <span class="kw">else</span> {
                 <span class="self">self</span>.<span class="ident">get_history</span>().<span class="ident">push</span>(<span class="ident">line</span>);
@@ -799,11 +800,11 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">help_cmd</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="op">-&gt;</span> <span class="ident">Command</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">return</span> <span class="ident">Command</span>::<span class="ident">new</span>(<span class="string">&quot;help&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;Print this help&quot;</span>.<span class="ident">to_string</span>(), <span class="number">0</span>, <span class="ident">Box</span>::<span class="ident">new</span>(<span class="op">|</span><span class="ident">io</span>, <span class="ident">shell</span>, _<span class="op">|</span> <span class="ident">shell</span>.<span class="ident">print_help</span>(<span class="ident">io</span>)));
+        <span class="kw">return</span> <span class="ident">Command</span>::<span class="ident">new</span>(<span class="string">&quot;help&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;Print this help&quot;</span>.<span class="ident">to_string</span>(), <span class="number">0</span>, <span class="ident">Box</span>::<span class="ident">new</span>(<span class="op">|</span><span class="ident">io</span>, <span class="ident">shell</span>, <span class="kw">_</span><span class="op">|</span> <span class="ident">shell</span>.<span class="ident">print_help</span>(<span class="ident">io</span>)));
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">quit_cmd</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="op">-&gt;</span> <span class="ident">Command</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">return</span> <span class="ident">Command</span>::<span class="ident">new</span>(<span class="string">&quot;quit&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;Quit&quot;</span>.<span class="ident">to_string</span>(), <span class="number">0</span>, <span class="ident">Box</span>::<span class="ident">new</span>(<span class="op">|</span>_, _, _<span class="op">|</span> <span class="prelude-val">Err</span>(<span class="ident">ExecError</span>::<span class="ident">Quit</span>)));
+        <span class="kw">return</span> <span class="ident">Command</span>::<span class="ident">new</span>(<span class="string">&quot;quit&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;Quit&quot;</span>.<span class="ident">to_string</span>(), <span class="number">0</span>, <span class="ident">Box</span>::<span class="ident">new</span>(<span class="op">|</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">|</span> <span class="prelude-val">Err</span>(<span class="ident">ExecError</span>::<span class="ident">Quit</span>)));
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">history_cmd</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="op">-&gt;</span> <span class="ident">Command</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
