@@ -15,7 +15,7 @@ fn main() {
 
     let mut shell = Shell::new(map);
 
-    shell.new_command("put", "Insert a value", 2, |_, map, args| {
+    shell.new_command(&"put", &"Insert a value", 2, |_, map, args| {
         map.lock().unwrap().insert(try!(usize::from_str(args[0])), args[1].to_string());
         Ok(())
     });
