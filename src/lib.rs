@@ -33,13 +33,13 @@ use ExecError::*;
 
 impl fmt::Display for ExecError {
     fn fmt(&self, format: &mut fmt::Formatter) -> fmt::Result {
-        return match self {
-            &Empty => write!(format, "No command provided"),
-            &Quit => write!(format, "Quit"),
-            &UnknownCommand(ref cmd) => write!(format, "Unknown Command {}", cmd),
-            &InvalidHistory(i) => write!(format, "Invalid history entry {}", i),
-            &MissingArgs => write!(format, "Not enough arguments"),
-            &Other(ref e) => write!(format, "{}", e)
+        return match *self {
+            Empty => write!(format, "No command provided"),
+            Quit => write!(format, "Quit"),
+            UnknownCommand(ref cmd) => write!(format, "Unknown Command {}", cmd),
+            InvalidHistory(i) => write!(format, "Invalid history entry {}", i),
+            MissingArgs => write!(format, "Not enough arguments"),
+            Other(ref e) => write!(format, "{}", e)
         };
     }
 }
@@ -133,7 +133,7 @@ impl <T> Shell<T> {
         let mut sh = Shell {
             commands: BTreeMap::new(),
             default: Arc::new(|_, _, cmd| Err(UnknownCommand(cmd.to_string()))),
-            data: data,
+            data,
             prompt: String::from(">"),
             unclosed_prompt: String::from(">"),
             history: History::new(10),
@@ -199,7 +199,7 @@ impl <T> Shell<T> {
         for cmd in self.commands.values() {
             table.add_row(cmd.help());
         }
-        return table.print(io).map_err(|e| From::from(e))
+        return table.print(io).map_err(From::from)
     }
 
     /// Return the command history
@@ -212,7 +212,7 @@ impl <T> Shell<T> {
         let mut splt = line.trim().split_whitespace();
         return match splt.next() {
             None => Err(Empty),
-            Some(cmd) => match self.commands.get(cmd).map(|i| i.clone()) {
+            Some(cmd) => match self.commands.get(cmd).cloned() {
                 None => self.default.clone()(io, self, line),
                 Some(c) => c.run(io, self, &splt.collect::<Vec<&str>>())
             }
@@ -235,7 +235,7 @@ impl <T> Shell<T> {
         let stdin = io::BufReader::new(io.clone());
         let mut iter = stdin.lines().map(|l| l.unwrap());
         while let Some(mut line) = iter.next() {
-            while line.len() > 0 && &line[line.len()-1 ..] == "\\" {
+            while !line.is_empty() && &line[line.len()-1 ..] == "\\" {
                 self.print_prompt(io, true);
                 line.pop();
                 line.push_str(&iter.next().unwrap())
@@ -244,7 +244,7 @@ impl <T> Shell<T> {
                 match e {
                     Empty => {},
                     Quit => return,
-                    e @ _ => writeln!(io, "Error : {}", e).unwrap()
+                    e => writeln!(io, "Error : {}", e).unwrap()
                 };
             } else {
                 self.get_history().push(line);
@@ -294,7 +294,7 @@ impl History {
     fn new(capacity: usize) -> History {
         return History {
             history: Arc::new(Mutex::new(Vec::with_capacity(capacity))),
-            capacity: capacity
+            capacity
         };
     }
 
@@ -319,7 +319,7 @@ impl History {
 
     /// Get a command from history by its index
     pub fn get(&self, i: usize) -> Option<String> {
-        return self.history.lock().unwrap().get(i).map(|s| s.clone());
+        return self.history.lock().unwrap().get(i).cloned();
     }
 }
 
@@ -340,10 +340,10 @@ mod builtins {
     impl <T> Command<T> {
         pub fn new(name: String, description: String, nargs: usize, func: CmdFn<T>) -> Command<T> {
             return Command {
-                name: name,
-                description: description,
-                nargs: nargs,
-                func: func
+                name,
+                description,
+                nargs,
+                func
             };
         }
 
@@ -369,9 +369,9 @@ mod builtins {
 
     pub fn history_cmd<T>() -> Command<T> {
         return Command::new("history".to_string(), "Print commands history or run a command from it".to_string(), 0, Box::new(|io, shell, args| {
-            if args.len() > 0 {
+            if !args.is_empty() {
                 let i = try!(usize::from_str(args[0]));
-                let cmd = try!(shell.get_history().get(i).ok_or(ExecError::InvalidHistory(i)));
+                let cmd = try!(shell.get_history().get(i).ok_or_else(|| ExecError::InvalidHistory(i)));
                 return shell.eval(io, &cmd);
             } else {
                 shell.get_history().print(io);

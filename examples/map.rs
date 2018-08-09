@@ -13,7 +13,7 @@ fn main() {
         map.insert(try!(usize::from_str(args[0])), args[1].to_string());
         Ok(())
     });
-    shell.new_command("get", "Get a value", 1, |mut io, map, args| {
+    shell.new_command("get", "Get a value", 1, |io, map, args| {
         match map.get(&try!(usize::from_str(args[0]))) {
             Some(val) => writeln!(io, "{}", val).unwrap(),
             None => writeln!(io, "Not found").unwrap()
@@ -24,7 +24,7 @@ fn main() {
         map.remove(&try!(usize::from_str(args[0])));
         Ok(())
     });
-    shell.new_command("list", "List all values", 0, |mut io, map, _| {
+    shell.new_command("list", "List all values", 0, |io, map, _| {
         for (k, v) in map {
             writeln!(io, "{} = {}", k, v).unwrap();
         }
