@@ -11,4 +11,4 @@ license = "MIT"
 keywords = ["shell", "console", "interactive", "terminal", "command"]
 
 [dependencies]
-prettytable-rs = "^0.6"
+prettytable-rs = "^0.7"
