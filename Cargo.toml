@@ -1,6 +1,6 @@
 [package]
 name = "shrust"
-version = "0.0.4"
+version = "0.0.5"
 description = "A library for creating interactive command line shells in Rust"
 authors = ["Pierre-Henri Symoneaux"]
 repository = "https://github.com/phsym/shrust"
