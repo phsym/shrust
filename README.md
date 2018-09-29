@@ -9,7 +9,7 @@ Rust library to create interactive command line shells
 
 [Documentation](http://phsym.github.io/shrust)
 
-*Copyright &copy; 2016 Pierre-Henri Symoneaux*
+*Copyright &copy; 2018 Pierre-Henri Symoneaux*
 
 > THIS SOFTWARE IS DISTRIBUTED WITHOUT ANY WARRANTY <br>
 > Check LICENSE.txt file for more information. <br>
