@@ -1,0 +1,15 @@
+var ALIASES = {};
+ALIASES['atty'] = {};
+ALIASES['byteorder'] = {};
+ALIASES['cfg_if'] = {};
+ALIASES['csv'] = {};
+ALIASES['csv_core'] = {};
+ALIASES['encode_unicode'] = {};
+ALIASES['lazy_static'] = {};
+ALIASES['libc'] = {};
+ALIASES['memchr'] = {};
+ALIASES['prettytable'] = {};
+ALIASES['serde'] = {};
+ALIASES['shrust'] = {};
+ALIASES['term'] = {};
+ALIASES['unicode_width'] = {};
