@@ -25,7 +25,7 @@ More often, you will include the library as a dependency to your project. In ord
 
 ```toml
 [dependencies]
-shrust = "0.0.5"
+shrust = "0.0.6"
 ```
 
 ## Basic usage

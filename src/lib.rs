@@ -199,7 +199,8 @@ impl <T> Shell<T> {
         for cmd in self.commands.values() {
             table.add_row(cmd.help());
         }
-        return table.print(io).map_err(From::from)
+        table.print(io)?;
+        Ok(())
     }
 
     /// Return the command history
@@ -325,7 +326,7 @@ impl History {
 
 mod builtins {
     use std::str::FromStr;
-    use prettytable::row::Row;
+    use prettytable::Row;
     use super::{Shell, ShellIO, ExecError, ExecResult};
 
     pub type CmdFn<T> = Box<Fn(&mut ShellIO, &mut Shell<T>, &[&str]) -> ExecResult + Send + Sync>;
