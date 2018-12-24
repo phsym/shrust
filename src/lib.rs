@@ -29,7 +29,7 @@ pub enum ExecError {
     /// Other error that may have happen during command execution
     Other(Box<Error>),
 }
-use ExecError::*;
+use crate::ExecError::*;
 
 impl fmt::Display for ExecError {
     fn fmt(&self, format: &mut fmt::Formatter) -> fmt::Result {
@@ -371,8 +371,8 @@ mod builtins {
     pub fn history_cmd<T>() -> Command<T> {
         return Command::new("history".to_string(), "Print commands history or run a command from it".to_string(), 0, Box::new(|io, shell, args| {
             if !args.is_empty() {
-                let i = try!(usize::from_str(args[0]));
-                let cmd = try!(shell.get_history().get(i).ok_or_else(|| ExecError::InvalidHistory(i)));
+                let i = r#try!(usize::from_str(args[0]));
+                let cmd = r#try!(shell.get_history().get(i).ok_or_else(|| ExecError::InvalidHistory(i)));
                 return shell.eval(io, &cmd);
             } else {
                 shell.get_history().print(io);
