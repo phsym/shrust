@@ -1,5 +1,6 @@
 var ALIASES = {};
 ALIASES["atty"] = {};
+ALIASES["bstr"] = {};
 ALIASES["byteorder"] = {};
 ALIASES["csv"] = {};
 ALIASES["csv_core"] = {};
@@ -10,6 +11,7 @@ ALIASES["lazy_static"] = {};
 ALIASES["libc"] = {};
 ALIASES["memchr"] = {};
 ALIASES["prettytable"] = {};
+ALIASES["regex_automata"] = {};
 ALIASES["ryu"] = {};
 ALIASES["serde"] = {};
 ALIASES["shrust"] = {};
