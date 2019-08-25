@@ -9,6 +9,7 @@ documentation = "http://phsym.github.io/shrust"
 readme = "README.md"
 license = "MIT"
 keywords = ["shell", "console", "interactive", "terminal", "command"]
+edition = "2018"
 
 [dependencies]
 prettytable-rs = "^0.8"
