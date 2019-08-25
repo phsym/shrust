@@ -39,7 +39,7 @@ use std::io::prelude::*;
 fn main() {
     let mut shell = Shell::new(());
     shell.new_command_noargs("hello", "Say 'hello' to the world", |io, _| {
-        try!(writeln!(io, "Hello World !!!"));
+        writeln!(io, "Hello World !!!")?;
         Ok(())
     });
 
@@ -68,7 +68,7 @@ You can attach data to the shell for usage by commands as seen in [data.rs](./ex
 let v = Vec::new();
 let mut shell = Shell::new(v);
 shell.new_command("push", "Add string to the list", 1, |io, v, s| {
-    try!(writeln!(io, "Pushing {}", s[0]));
+    writeln!(io, "Pushing {}", s[0])?;
     v.push(s[0].to_string());
     Ok(())
 });
