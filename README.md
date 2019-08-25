@@ -74,7 +74,7 @@ shell.new_command("push", "Add string to the list", 1, |io, v, s| {
 });
 shell.new_command_noargs("list", "List strings", |io, v| {
     for s in v {
-        try!(writeln!(io, "{}", s));
+        writeln!(io, "{}", s)?;
     }
     Ok(())
 });
@@ -126,7 +126,7 @@ by providing a custom default handler to be invoked on not found command.
 ```rust
 let mut shell = Shell::new(());
 shell.set_default(|io, _, cmd| {
-    try!(writeln!(io, "Hello from default handler !!! Received: {}", cmd));
+    writeln!(io, "Hello from default handler !!! Received: {}", cmd)?;
     Ok(())
 });
 shell.run_loop(&mut ShellIO::default());
