@@ -20,5 +20,4 @@ implementors["term"] = [{text:"impl Freeze for <a class=\"enum\" href=\"term/enu
             } else {
                 window.pending_implementors = implementors;
             }
-        
-})()
+        })()

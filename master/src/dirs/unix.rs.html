@@ -61,29 +61,29 @@
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">libc</span>;
 
 <span class="comment">// https://github.com/rust-lang/rust/blob/master/src/libstd/sys/unix/os.rs#L498</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">home_dir</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span> {
-    <span class="kw">return</span> <span class="ident">env</span>::<span class="ident">var_os</span>(<span class="string">&quot;HOME&quot;</span>).<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> { <span class="kw">if</span> <span class="ident">h</span>.<span class="ident">is_empty</span>() { <span class="prelude-val">None</span> } <span class="kw">else</span> { <span class="prelude-val">Some</span>(<span class="ident">h</span>) } } ).<span class="ident">or_else</span>(<span class="op">||</span> <span class="kw">unsafe</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">home_dir</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span> {
+    <span class="kw">return</span> <span class="ident">env</span>::<span class="ident">var_os</span>(<span class="string">&quot;HOME&quot;</span>).<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> { <span class="kw">if</span> <span class="ident">h</span>.<span class="ident">is_empty</span>() { <span class="prelude-val">None</span> } <span class="kw">else</span> { <span class="prelude-val">Some</span>(<span class="ident">h</span>) } } ).<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
         <span class="ident">fallback</span>()
     }).<span class="ident">map</span>(<span class="ident">PathBuf</span>::<span class="ident">from</span>);
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
               <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
               <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>))]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">fallback</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">OsString</span><span class="op">&gt;</span> { <span class="prelude-val">None</span> }
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">fallback</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">OsString</span><span class="op">&gt;</span> { <span class="prelude-val">None</span> }
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>)))]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">fallback</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">OsString</span><span class="op">&gt;</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">fallback</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">OsString</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">amt</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">libc</span>::<span class="ident">sysconf</span>(<span class="ident">libc</span>::<span class="ident">_SC_GETPW_R_SIZE_MAX</span>) {
-            <span class="ident">n</span> <span class="kw">if</span> <span class="ident">n</span> <span class="op">&lt;</span> <span class="number">0</span> <span class="op">=&gt;</span> <span class="number">512</span> <span class="kw">as</span> <span class="ident">usize</span>,
-            <span class="ident">n</span> <span class="op">=&gt;</span> <span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>,
+            <span class="ident">n</span> <span class="kw">if</span> <span class="ident">n</span> <span class="op">&lt;</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">512</span> <span class="kw">as</span> <span class="ident">usize</span>,
+            <span class="ident">n</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>,
         };
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">amt</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">passwd</span>: <span class="ident">libc</span>::<span class="ident">passwd</span> <span class="op">=</span> <span class="ident">mem</span>::<span class="ident">zeroed</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">ptr</span>::<span class="ident">null_mut</span>();
         <span class="kw">match</span> <span class="ident">libc</span>::<span class="ident">getpwuid_r</span>(<span class="ident">libc</span>::<span class="ident">getuid</span>(), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">passwd</span>, <span class="ident">buf</span>.<span class="ident">as_mut_ptr</span>(),
                                <span class="ident">buf</span>.<span class="ident">capacity</span>(), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">result</span>) {
-            <span class="number">0</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">result</span>.<span class="ident">is_null</span>() <span class="op">=&gt;</span> {
+            <span class="number">0</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">result</span>.<span class="ident">is_null</span>() <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">passwd</span>.<span class="ident">pw_dir</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>;
                 <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">CStr</span>::<span class="ident">from_ptr</span>(<span class="ident">ptr</span>).<span class="ident">to_bytes</span>();
                 <span class="kw">if</span> <span class="ident">bytes</span>.<span class="ident">is_empty</span>() {
@@ -92,7 +92,7 @@
                     <span class="prelude-val">Some</span>(<span class="ident">OsStringExt</span>::<span class="ident">from_vec</span>(<span class="ident">bytes</span>.<span class="ident">to_vec</span>()))
                 }
             },
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
 }

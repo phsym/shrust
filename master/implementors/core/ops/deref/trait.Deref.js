@@ -9,5 +9,4 @@ implementors["shrust"] = [{text:"impl&lt;T&gt; <a class=\"trait\" href=\"https:/
             } else {
                 window.pending_implementors = implementors;
             }
-        
-})()
+        })()
