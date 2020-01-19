@@ -124,6 +124,7 @@ pub struct Shell<T> {
     data: T,
     prompt: String,
     unclosed_prompt: String,
+    dynamic_prompt: Option<Arc<dyn Fn(&T) -> String + Send + Sync>>,
     history: History
 }
 
@@ -136,6 +137,7 @@ impl <T> Shell<T> {
             data,
             prompt: String::from(">"),
             unclosed_prompt: String::from(">"),
+            dynamic_prompt: None,
             history: History::new(10),
         };
         sh.register_command(builtins::help_cmd());
@@ -157,6 +159,13 @@ impl <T> Shell<T> {
     /// Change the current unclosed prompt
     pub fn set_unclosed_prompt(&mut self, prompt: String) {
         self.unclosed_prompt = prompt;
+    }
+
+    /// Change the current dynamic prompt
+    pub fn set_dynamic_prompt<F>(&mut self, func: F)
+        where F: Fn(&T) -> String + Send + Sync + 'static
+    {
+        self.dynamic_prompt = Some(Arc::new(func));
     }
 
     fn register_command(&mut self, cmd: builtins::Command<T>) {
@@ -221,7 +230,9 @@ impl <T> Shell<T> {
     }
 
     fn print_prompt(&self, io: &mut ShellIO, unclosed: bool) {
-        if unclosed {
+        if let Some(func) = &self.dynamic_prompt {
+            write!(io, "{} ", func(&self.data)).unwrap();
+        } else if unclosed {
             write!(io, "{} ", self.unclosed_prompt).unwrap();
         } else {
             write!(io, "{} ", self.prompt).unwrap();
@@ -276,6 +287,7 @@ impl <T> Clone for Shell<T> where T: Clone {
             data: self.data.clone(),
             prompt: self.prompt.clone(),
             unclosed_prompt: self.unclosed_prompt.clone(),
+            dynamic_prompt: self.dynamic_prompt.clone(),
             history: self.history.clone()
         };
     }
