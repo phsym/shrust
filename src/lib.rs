@@ -27,7 +27,7 @@ pub enum ExecError {
     /// The history index is not valid
     InvalidHistory(usize),
     /// Other error that may have happen during command execution
-    Other(Box<Error>),
+    Other(Box<dyn Error>),
 }
 use crate::ExecError::*;
 
@@ -64,8 +64,8 @@ impl <E: Error + 'static> From<E> for ExecError {
 /// Input / Output for shell execution
 #[derive(Clone)]
 pub struct ShellIO {
-    input: Arc<Mutex<io::Read + Send>>,
-    output: Arc<Mutex<io::Write + Send>>
+    input: Arc<Mutex<dyn io::Read + Send>>,
+    output: Arc<Mutex<dyn io::Write + Send>>
 }
 
 impl ShellIO {
@@ -120,7 +120,7 @@ pub type ExecResult = Result<(), ExecError>;
 /// A shell
 pub struct Shell<T> {
     commands: BTreeMap<String, Arc<builtins::Command<T>>>,
-    default: Arc<Fn(&mut ShellIO, &mut Shell<T>, &str) -> ExecResult + Send + Sync>,
+    default: Arc<dyn Fn(&mut ShellIO, &mut Shell<T>, &str) -> ExecResult + Send + Sync>,
     data: T,
     prompt: String,
     unclosed_prompt: String,
@@ -329,7 +329,7 @@ mod builtins {
     use prettytable::Row;
     use super::{Shell, ShellIO, ExecError, ExecResult};
 
-    pub type CmdFn<T> = Box<Fn(&mut ShellIO, &mut Shell<T>, &[&str]) -> ExecResult + Send + Sync>;
+    pub type CmdFn<T> = Box<dyn Fn(&mut ShellIO, &mut Shell<T>, &[&str]) -> ExecResult + Send + Sync>;
 
     pub struct Command<T> {
         pub name: String,
