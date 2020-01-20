@@ -141,6 +141,39 @@ Hello from default handler !!! Received: foo
 ```
 This is applied in example [default.rs](./examples/default.rs).
 
+## Dynamic prompt
+
+Sometimes it's useful to show additional context information.
+This can be achieved by providing a dynamic prompt function.
+```rust
+struct ShellEnv {
+    context: Option<String>,
+};
+let mut shell = Shell::new(ShellEnv { context: None });
+shell.new_command("enter", "Enter context", 1, |_, env, args| {
+    env.context = Some(String::from(args[0]));
+    Ok(())
+});
+shell.new_command_noargs("leave", "Leave current context", |_, env| {
+    env.context = None;
+    Ok(())
+});
+shell.set_dynamic_prompt(|env| match &env.context {
+    Some(name) => format!("[{}] >", name),
+    None => String::from(">"),
+});
+shell.run_loop(&mut ShellIO::default());
+```
+Output:
+```
+λ cargo run --example dynamic_prompt
+     Running `target/debug/examples/dynamic_prompt`
+> enter main
+[main] > leave
+> quit
+```
+This is applied in example [dynamic_prompt.rs](./examples/dynamic_prompt.rs).
+
 ## Multithreading
 A shell instance itself cannot be shared across threads, it needs to be cloned. A shell is clonable only if the wrapped data
 is clonable too. However, the wrapped data can be easily shared if (for example) it's an `Arc` around a `Sync+Send` value.
