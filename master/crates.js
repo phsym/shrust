@@ -1,0 +1,1 @@
+window.ALL_CRATES = ["atty","bstr","byteorder","csv","csv_core","dirs","encode_unicode","itoa","lazy_static","libc","memchr","prettytable","regex_automata","ryu","serde","shrust","term","unicode_width"];
